@@ -189,7 +189,11 @@ class NovaDependencyContainer extends Field
                 continue;
             }
 
-            if (array_key_exists('existsIn', $dependency) && in_array($resource->{$dependency['property']}, $dependency['existsIn'], true)) {
+            if (array_key_exists('existsIn', $dependency) && is_array($dependency['existsIn']) && in_array($resource->{$dependency['property']}, $dependency['existsIn'], true)) {
+                $this->meta['dependencies'][$index]['satisfied'] = true;
+                continue;
+            }
+            else if (array_key_exists('existsIn', $dependency) && !is_array($dependency['existsIn']) && $resource->{$dependency['property']} == $dependency['existsIn']) {
                 $this->meta['dependencies'][$index]['satisfied'] = true;
                 continue;
             }
@@ -260,7 +264,10 @@ class NovaDependencyContainer extends Field
         $satisfiedCounts = 0;
         foreach ($this->meta['dependencies'] as $index => $dependency) {
 
-            if (array_key_exists('existsIn', $dependency) && in_array($request->has($dependency['property']), $dependency['existsIn'], true)) {
+           // dd($dependency['existsIn']);
+            if (array_key_exists('existsIn', $dependency) && is_array($dependency['existsIn']) && in_array($request->has($dependency['property']), $dependency['existsIn'], true)) {
+                $satisfiedCounts++;
+            } else if (array_key_exists('existsIn', $dependency) && !is_array($dependency['existsIn']) && $request->has($dependency['value']) == $dependency['existsIn']) {
                 $satisfiedCounts++;
             }
 
