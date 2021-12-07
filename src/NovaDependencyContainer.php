@@ -53,6 +53,22 @@ class NovaDependencyContainer extends Field
     }
 
     /**
+     * Adds a dependency on an array value
+     *
+     * @param $field
+     * @param $value
+     * @return $this
+     */
+    public function dependsOnExistsInArray($field, $value)
+    {
+        return $this->withMeta([
+            'dependencies' => array_merge($this->meta['dependencies'], [
+                array_merge($this->getFieldLayout($field), ['existsIn' => $value])
+            ])
+        ]);
+    }
+
+    /**
      * Adds a dependency for not
      *
      * @param $field
@@ -173,6 +189,19 @@ class NovaDependencyContainer extends Field
                 continue;
             }
 
+            if (array_key_exists('existsIn', $dependency) && is_array($dependency['existsIn']) && in_array($resource->{$dependency['property']}, $dependency['existsIn'], true)) {
+                $this->meta['dependencies'][$index]['satisfied'] = true;
+                continue;
+            }
+            else if (array_key_exists('existsIn', $dependency) && !is_array($dependency['existsIn']) && $resource->{$dependency['property']} == $dependency['existsIn']) {
+                $this->meta['dependencies'][$index]['satisfied'] = true;
+                continue;
+            }
+            else if (array_key_exists('existsIn', $dependency))
+            {
+                continue;
+            }
+
             if (array_key_exists('value', $dependency)) {
                 if ($dependency['value'] == $resource->{$dependency['property']}) {
                     $this->meta['dependencies'][$index]['satisfied'] = true;
@@ -185,7 +214,6 @@ class NovaDependencyContainer extends Field
                     continue;
                 }
             }
-
         }
     }
 
@@ -235,6 +263,13 @@ class NovaDependencyContainer extends Field
 
         $satisfiedCounts = 0;
         foreach ($this->meta['dependencies'] as $index => $dependency) {
+
+           // dd($dependency['existsIn']);
+            if (array_key_exists('existsIn', $dependency) && is_array($dependency['existsIn']) && in_array($request->has($dependency['property']), $dependency['existsIn'], true)) {
+                $satisfiedCounts++;
+            } else if (array_key_exists('existsIn', $dependency) && !is_array($dependency['existsIn']) && $request->has($dependency['value']) == $dependency['existsIn']) {
+                $satisfiedCounts++;
+            }
 
             if (array_key_exists('empty', $dependency) && empty($request->has($dependency['property']))) {
                 $satisfiedCounts++;

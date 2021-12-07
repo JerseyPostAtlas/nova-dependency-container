@@ -113,6 +113,12 @@
 
 					// #93 compatability with flexible-content, which adds a generated attribute for each field
 					let dependencyValue = this.dependencyValues[(this.field.attribute + dependency.field)];
+
+                    if (dependency.hasOwnProperty('existsIn') && Array.isArray(dependencyValue) && dependencyValue.findIndex(item => item[dependency.property] == dependency.existsIn) > -1) {
+                        this.dependenciesSatisfied = true;
+                        return;
+                    }
+
 					if (dependency.hasOwnProperty('empty') && !dependencyValue) {
 						this.dependenciesSatisfied = true;
 						return;
